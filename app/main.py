@@ -1,24 +1,28 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import uvicorn
 
-from database import DATABASE
+load_dotenv()
+
+from app.db.database import DATABASE
 from app.routers import dialogues
 
-load_dotenv()
+# создаем базу или берем существующую, запустится при старте
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup
+    await DATABASE.init_db()
+    yield
 
 # инициализация fastapi
 app = FastAPI(
     title="Python Chatbot Project API",
     description="REST API для pet-проекта на React",
     version="0.1.0",
+    lifespan=lifespan
 )
-
-# создаем базу или берем существующую, запустится при старте
-@app("startup")
-async def init_db():
-    await DATABASE.init_db()
 
 # Настройка CORS для React фронтенда
 app.add_middleware(
@@ -39,4 +43,4 @@ async def health_check():
 
 # запуск fastapi
 if __name__ == "__main__":
-    uvicorn.run("app:app")
+    uvicorn.run(app)

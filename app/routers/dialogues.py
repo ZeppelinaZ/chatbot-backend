@@ -1,28 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException
+import uuid
 
 from app.schemas.dialogue import DialogueSchema
-from database import DATABASE
+from app.db.database import DATABASE
 
 router = APIRouter()
 
 @router.get("/dialogue", response_model=list[DialogueSchema])
 async def list_dialogues(user_id: str):
     """Получить список диалогов"""
-    dialogues = DATABASE.get_dialogues_by_user_id(user_id)
+    dialogues = await DATABASE.get_dialogues_by_user_id(user_id)
     return dialogues
 
-
-
-
-
-# @router.post("/items", response_model=ItemResponse, status_code=201)
-# async def create_item(item_data: ItemCreate, db: Session = Depends(get_db)):
-#     """Создать новый элемент"""
-#     db_item = Item(**item_data.model_dump())
-#     db.add(db_item)
-#     db.commit()
-#     db.refresh(db_item)
-#     return db_item
+@router.post("/dialogue", response_model=DialogueSchema)
+async def create_dialogue(user_id):
+    """Создать новый элемент"""
+    chat_id = str(uuid.uuid4())
+    newDialogue = await DATABASE.get_or_create_dialogue(chat_id, user_id)
+    return newDialogue
 
 
 # @router.get("/items/{item_id}", response_model=ItemResponse)

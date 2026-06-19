@@ -1,19 +1,23 @@
 
 
 from datetime import datetime
+from sqlalchemy import JSON
+from sqlalchemy.orm import DeclarativeBase
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.database import Base
-
 # импорты моделей
 from app.models.dialogue import Dialogue
-from app.models.message import Message
+
+class Base(DeclarativeBase):
+    """Базовый класс для всех SQLAlchemy моделей"""
+    pass
 
 class PostgresDBProvider:
-    """Провайдер для работы с PostgreSQL базой данных"""
+    """Провайдер для работы с базой данных PostgreSQL"""
     def __init__(self, DATABASE_URL: str):
+        # что такое __init__
         self.engine = create_async_engine(DATABASE_URL, echo=False, future=True)
         self.SessionLocal = sessionmaker(
             bind=self.engine,
@@ -22,11 +26,13 @@ class PostgresDBProvider:
         )
 
     async def init_db(self):
+        print("INIT DB CALLED")
         """Создать таблицы, если их нет"""
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
     async def get_or_create_dialogue(self, chat_id: str, user_id: int) -> Dialogue:
+        """Создать или получить диалог по chat_id"""
         async with self.SessionLocal() as session:
             dialogue = await session.execute(
                 Dialogue.__table__.select().where(Dialogue.chat_id == chat_id)
@@ -37,8 +43,8 @@ class PostgresDBProvider:
                     chat_id=chat_id,
                     user_id=user_id,
                     messages=[],
-                    last_active=datetime.now(),
-                    status="active"
+                    created_at=datetime.now(),
+                    updated_at=datetime.now()
                 )
                 session.add(dialogue)
                 await session.commit()
@@ -54,6 +60,7 @@ class PostgresDBProvider:
             return dialogues
         
     async def delete_dialogue(self, chat_id: str):
+        """Удалить диалог по chat_id"""
         async with self.SessionLocal() as session:
             dialogue = await session.execute(
                 Dialogue.__table__.select().where(Dialogue.chat_id == chat_id)
@@ -65,7 +72,7 @@ class PostgresDBProvider:
                 )
                 await session.commit()
 
-    async def append_message(self, chat_id: str, user_id: int, message: Message):
+    async def append_message(self, chat_id: str, user_id: int, message: JSON):
         now = datetime.now()
         async with self.SessionLocal() as session:
             dialogue = await session.execute(

@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 class MessageSchema(BaseModel):
-    id: UUID
+    message_id: UUID
     content: str
     created_at: datetime
     updated_at: datetime

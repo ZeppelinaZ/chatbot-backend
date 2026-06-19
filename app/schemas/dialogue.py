@@ -5,7 +5,7 @@ from uuid import UUID
 from app.schemas.messages import MessageSchema
 
 class DialogueSchema(BaseModel):
-    id: UUID
+    chat_id: UUID
     user_id: UUID
     messages: list[MessageSchema]
     created_at: datetime
