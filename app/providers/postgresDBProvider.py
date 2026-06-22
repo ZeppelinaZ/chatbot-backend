@@ -1,18 +1,12 @@
-
-
 from datetime import datetime
 from sqlalchemy import JSON
-from sqlalchemy.orm import DeclarativeBase
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 # импорты моделей
-from app.models.dialogue import Dialogue
+from app.models.dialogue import Base, Dialogue
 
-class Base(DeclarativeBase):
-    """Базовый класс для всех SQLAlchemy моделей"""
-    pass
 
 class PostgresDBProvider:
     """Провайдер для работы с базой данных PostgreSQL"""
