@@ -1,23 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException
-import uuid
+from uuid import UUID, uuid4
 
-from app.schemas.dialogue import DialogueSchema
-from app.db.database import DATABASE
+from app.dialogue import DialogueSchema, DialoguesSchema
+from app.database import DATABASE
 
 router = APIRouter()
 
-@router.get("/dialogue", response_model=list[DialogueSchema])
-async def list_dialogues(user_id: str):
-    """Получить список диалогов"""
-    dialogues = await DATABASE.get_dialogues_by_user_id(user_id)
+@router.get("/dialogues", response_model=DialoguesSchema)
+async def list_dialogues(user_id: UUID):
+    """Получить список диалогов для user_id"""
+    dialogues = await DATABASE.get_dialogues(user_id)
     return dialogues
 
+
 @router.post("/dialogue", response_model=DialogueSchema)
-async def create_dialogue(user_id):
-    """Создать новый элемент"""
-    chat_id = str(uuid.uuid4())
-    newDialogue = await DATABASE.get_or_create_dialogue(chat_id, user_id)
-    return newDialogue
+async def create_dialogue(user_id: UUID):
+    """Создать новый диалог для user_id"""
+    chat_id = str(uuid4())
+    new_dialogue = await DATABASE.create_dialogue(chat_id, user_id)
+    return new_dialogue
+
+
+@router.delete("/dialogue", response_model=UUID)
+async def delete_dialogue(chat_id: UUID):
+    """Удалить диалог по chat_id"""
 
 
 # @router.get("/items/{item_id}", response_model=ItemResponse)
@@ -42,14 +48,3 @@ async def create_dialogue(user_id):
 #     db.commit()
 #     db.refresh(item)
 #     return item
-
-
-# @router.delete("/items/{item_id}", status_code=204)
-# async def delete_item(item_id: int, db: Session = Depends(get_db)):
-#     """Удалить элемент"""
-#     item = db.query(Item).filter(Item.id == item_id).first()
-#     if not item:
-#         raise HTTPException(status_code=404, detail="Element not found")
-
-#     db.delete(item)
-#     db.commit()
