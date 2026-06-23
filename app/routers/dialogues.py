@@ -21,9 +21,12 @@ async def create_dialogue(user_id: UUID):
     return new_dialogue
 
 
-@router.delete("/dialogue", response_model=UUID)
+@router.delete("/dialogue", status_code=204)
 async def delete_dialogue(chat_id: UUID):
     """Удалить диалог по chat_id"""
+    success = await DATABASE.delete_dialogue(chat_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Dialogue not found")
 
 
 # @router.get("/items/{item_id}", response_model=ItemResponse)

@@ -58,19 +58,18 @@ class PostgresDBProvider:
             return DialogueSchema.model_validate(dialogue)
 
 
-    async def delete_dialogue(self, chat_id: UUID):
+    async def delete_dialogue(self, chat_id: UUID) -> bool:
         """Удалить диалог по chat_id"""
         async with self.SessionLocal() as session:
             result = await session.execute(
                 select(DialoguePSQL).where(DialoguePSQL.chat_id == chat_id)
             )
-            dialogue = result.first()
-            if dialogue:
-                await session.execute(
-                    delete(DialoguePSQL).where(DialoguePSQL.chat_id == chat_id)
-                )
-                await session.commit()
-            return UUID(chat_id)
+            dialogue = result.scalar_one_or_none()
+            if not dialogue:
+              return False
+            await session.delete(dialogue)
+            await session.commit()
+            return True
 
 
     # async def get_dialogues_by_user_id(self, user_id: int) -> list[Dialogue]:
