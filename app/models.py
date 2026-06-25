@@ -10,6 +10,7 @@ class DialoguePSQL(Base):
 
     chat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), nullable=False)
+    name = Column(String, default="Диалог")
     messages = Column(JSON, default=list)
     created_at = Column(DateTime, nullable=True)
     updated_at = Column(DateTime, nullable=True)

@@ -1,10 +1,11 @@
 from datetime import datetime
-from sqlalchemy import JSON, select, delete
+from sqlalchemy import JSON, select
 from uuid import UUID
+from fastapi import HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from app.dialogue import DialogueSchema, DialoguesSchema
+from app.dialogue import DialogueSchema, DialoguesSchema, DialogueChangeNameSchema
 
 # импорты моделей
 from app.models import Base, DialoguePSQL
@@ -58,6 +59,26 @@ class PostgresDBProvider:
             return DialogueSchema.model_validate(dialogue)
 
 
+    async def change_dialogue_name(self, dialogue_data: DialogueChangeNameSchema) -> bool:
+        """Изменить диалог по chat_id"""
+        async with self.SessionLocal() as session:
+            result = await session.execute(
+                select(DialoguePSQL).where(DialoguePSQL.chat_id == dialogue_data.chat_id)
+            )
+            dialogue = result.scalar_one_or_none()
+            if not dialogue:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Dialogue with given chat_id not found"
+                )
+            dialogue.name = dialogue_data.name
+            dialogue.updated_at = datetime.now()
+            
+            await session.commit()
+            await session.refresh(dialogue)
+            return DialogueSchema.model_validate(dialogue)
+
+
     async def delete_dialogue(self, chat_id: UUID) -> bool:
         """Удалить диалог по chat_id"""
         async with self.SessionLocal() as session:
@@ -70,15 +91,6 @@ class PostgresDBProvider:
             await session.delete(dialogue)
             await session.commit()
             return True
-
-
-    # async def get_dialogues_by_user_id(self, user_id: int) -> list[Dialogue]:
-    #     """Получение всего списка диалогов"""
-    #     async with self.SessionLocal() as session:
-    #         dialogues = await session.execute(
-    #             Dialogue.__table__.select().where(Dialogue.user_id == user_id)
-    #         )
-    #         return dialogues
 
 
     # async def append_message(self, chat_id: str, user_id: int, message: JSON):

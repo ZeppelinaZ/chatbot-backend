@@ -16,6 +16,7 @@ class DialogueSchema(BaseModel):
     chat_id: UUID
     user_id: UUID
     messages: list[MessageSchema]
+    name: str
     created_at: datetime
     updated_at: datetime
 
@@ -26,5 +27,7 @@ class DialogueSchema(BaseModel):
 class DialoguesSchema(BaseModel):
     dialogues: list[DialogueSchema]
 
-    class Config:
-        from_attributes = True
+
+class DialogueChangeNameSchema(BaseModel):
+    chat_id: UUID
+    name: str

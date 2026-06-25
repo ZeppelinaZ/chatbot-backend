@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID, uuid4
 
-from app.dialogue import DialogueSchema, DialoguesSchema
+from app.dialogue import DialogueSchema, DialoguesSchema, DialogueChangeNameSchema
 from app.database import DATABASE
 
 router = APIRouter()
@@ -19,6 +19,13 @@ async def create_dialogue(user_id: UUID):
     chat_id = str(uuid4())
     new_dialogue = await DATABASE.create_dialogue(chat_id, user_id)
     return new_dialogue
+
+
+@router.put("/dialogue", response_model=DialogueSchema)
+async def change_dialogue_name(dialogue_data: DialogueChangeNameSchema):
+    """Изменить диалог по chat_id"""
+    edit_dialogue = await DATABASE.change_dialogue_name(dialogue_data)
+    return edit_dialogue
 
 
 @router.delete("/dialogue", status_code=204)
